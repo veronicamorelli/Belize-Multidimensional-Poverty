@@ -1,3 +1,5 @@
 Material/
 .DS_Store
 figs_report/
+.RData
+.Rhistory
