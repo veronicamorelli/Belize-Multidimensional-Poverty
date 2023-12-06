@@ -11,7 +11,7 @@ df %>% glimpse()
 
 str(df)
 
-df_som = df[, -c(1, 12, 13)]
+df_som = df[, -c(1, 12, 13, 14)]
 
 str(df_som)
 
@@ -22,7 +22,7 @@ print(unique_values)
 
 # make a train data sets that scaled and convert them to be a matrix cause 
 # kohonen function accept numeric matrix
-df_som.train <- as.matrix(scale(df_som[,-1]))
+df_som.train <- as.matrix(df_som[])
 
 # make stable sampling
 RNGkind(sample.kind = "Rounding")
@@ -30,11 +30,13 @@ RNGkind(sample.kind = "Rounding")
 set.seed(100)
 df_som.grid <- somgrid(xdim = 10, ydim = 10, topo = "hexagonal")
 
+str(df_som.train)
+
 # make a SOM model
 set.seed(100)
 df_som.model <- som(df_som.train, df_som.grid, rlen = 500, radius = 2.5, keep.data = TRUE,
-                 dist.fcts = "euclidean")
-# TO CHANGE METRIC!!
+                 dist.fcts = "tanimoto")
+# tanimoto distance because variables are binary
 str(df_som.model)
 
 head(df_som.model$unit.classif)
@@ -65,13 +67,26 @@ heatmap.som <- function(model){
 }
 heatmap.som(df_som.model)
 
+heatmap.som <- function(model, nrows = 5, ncols = 2) {
+  par(mfrow = c(nrows, ncols), mar = c(5, 4, 4, 2) + 1)  # Adjust the right margin
+  
+  for (i in 1:10) {
+    plot(model, type = "property", property = getCodes(model)[, i], 
+         main = colnames(getCodes(model))[i])
+  }
+  
+  par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)  # Reset the layout and margin to default
+}
+
+heatmap.som(df_som.model)
+
 ### Clustering
 set.seed(100)
 fviz_nbclust(df_som.model$codes[[1]], kmeans, method = "wss")
 # 6 clusters
 
 set.seed(100)
-clust <- kmeans(df_som.model$codes[[1]], 6)
+clust <- kmeans(df_som.model$codes[[1]], 3)
 
 # clustering using hierarchial
 # cluster.som <- cutree(hclust(dist(ads.model$codes[[1]])), 6)
